@@ -43,9 +43,30 @@ while keepPlaying:
             #Left Joystick
             if event.axis < 2:
                 print("left joystick")
+                if (event.axis == 0):
+                    if (event.value > 0):
+                        print('up')
+                    if (event.value < 0):
+                        print('down')
+                if (event.axis == 1):
+                    if (event.value > 0):
+                        print('right')
+                    if (event.value < 0):
+                        print('left')
+
             #Right Joystick
             if (event.axis >1) and (event.axis< 4):
                 print('right joystick')
+                if (event.axis == 2):
+                    if (event.value > 0):
+                        print('up')
+                    if (event.value < 0):
+                        print('down')
+                if (event.axis == 3):
+                    if (event.value > 0):
+                        print('right')
+                    if (event.value < 0):
+                        print('left')
             #Left Trigger
             if (event.axis == 4):
                 print('left trigger')
