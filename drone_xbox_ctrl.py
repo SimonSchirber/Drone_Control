@@ -1,8 +1,18 @@
-
+from djitellopy import Tello
+from time import sleep
+import cv2, math
 import pygame
 from pygame.locals import *
 
 ##see all commands at https://github.com/damiafuentes/DJITelloPy/blob/master/djitellopy/tello.py
+
+#create tello object, call it anything and initalize
+drone = Tello()
+drone.connect()
+
+
+# #get battery status
+print(f'drone battery: {drone.get_battery()}%')
 
 ##initialize pygame
 pygame.init()
@@ -13,18 +23,24 @@ clock = pygame.time.Clock()
 pygame.joystick.init()
 joystick = [pygame.joystick.Joystick(i) for i in range(pygame.joystick.get_count())]
 
-#left bumper filtering
+#left bumper
 axis_0 = [10,10,10]
 axis_1 = [10,10,10]
 avg_0 = 20
 avg_1 = 20
 
-#right bumper filtering
+#right bumper
 axis_2 = [10,10,10]
 axis_3 = [10,10,10]
 avg_2 = 20
 avg_3 = 20
 
+##drone.streamon()
+##frame_read = drone.get_frame_read()
+lr, fb, ud, yv = 0,0,0,0
+
+speed = 50
+fast_speed = 100
 
 keepflying = True
 
@@ -34,26 +50,35 @@ while keepflying:
             #Buttons
             if (event.button == 0):
                 print('a pressed')
+                drone.takeoff()
+                sleep(.05)
             if (event.button == 1):
                 print('b pressed')
+                drone.land()
+                sleep(.05)
             if (event.button == 2):
                 print('x pressed')
+                drone.send_rc_control(0, 0, 0, 0)
+                sleep(.05)
             if (event.button == 3):
                 print('y pressed')
                 
             #Bumpers
             if (event.button == 4):
                 print('left bumper pressed')
+                drone.send_rc_control(0, 0, 0, -5)
+                sleep(.05)
             if (event.button == 5):
                 print('right bumper pressed')
-
-            #Middle buttons
+                drone.send_rc_control(0, 0, 0, 5)
+                sleep(.05)
+            #middle buttons
             if (event.button == 6):
                 print('left middle pressed')
             if (event.button == 7):
                 print('right middle pressed')
         if event.type ==JOYBUTTONUP:
-            print('released')
+            print('button released')
 
 
         if event.type == JOYAXISMOTION:
@@ -69,18 +94,26 @@ while keepflying:
             if (event.axis ==0) or (event.axis== 1):
                 if (-.25<avg_0<.25) and (-1<avg_1<-.75):
                     print('up')
+                    drone.send_rc_control(speed, 0, 0, 0)
+                    sleep(.05)
                 elif (-.75<avg_0<-.25) and (-.75<avg_1<-.25):
                     print('up left')
                 elif (-1<avg_0<-.75) and (-.25<avg_1<.25):
                     print('left')
+                    drone.send_rc_control(0, -speed, 0, 0)
+                    sleep(.05)
                 elif (-.75<avg_0<-.25) and (.25<avg_1<.75):
                     print('down left')
                 elif (-.25<avg_0<.25) and (.75<avg_1<1):
                     print('down')
+                    drone.send_rc_control(-speed, 0, 0, 0)
+                    sleep(.05)
                 elif (.25<avg_0<.75) and (.25<avg_1<.75):
                     print('down right')
                 elif (.75<avg_0<1) and (-.25<avg_1<.25):
                     print('right')
+                    drone.send_rc_control(0, speed, 0, 0)
+                    sleep(.05)
                 elif (.25<avg_0<.75) and (-75<avg_1<-.25):
                     print('up right')
             
@@ -97,6 +130,7 @@ while keepflying:
             if (event.axis ==2) or (event.axis== 3):
                 if (-.25<avg_2<.25) and (-1<avg_3<-.75):
                     print('up')
+                    drone.send_rc_control(0, 0, speed, 0)
                 elif (-.75<avg_2<-.25) and (-.75<avg_3<-.25):
                     print('up left')
                 elif (-1<avg_2<-.75) and (-.25<avg_3<.25):
@@ -105,6 +139,7 @@ while keepflying:
                     print('down left')
                 elif (-.25<avg_2<.25) and (.75<avg_3<1):
                     print('down')
+                    drone.send_rc_control(0, 0, -speed, 0)
                 elif (.25<avg_2<.75) and (.25<avg_3<.75):
                     print('down right')
                 elif (.75<avg_2<1) and (-.25<avg_3<.25):
@@ -115,63 +150,37 @@ while keepflying:
             #Left Trigger
             if (event.axis == 4):
                 print('left trigger')
+                print('normal')
                 speed = 50
             #Right Trigger
             if (event.axis == 5):
+                speed = fast_speed
                 print('right trigger')
         
         if event.type == JOYHATMOTION:
+            print(event)
             #DPAD up,down,left,right
             if (event.value == (1,0)):
                 print('right dpad')
+                drone.send_rc_control(speed, 0, 0, 0)
+                sleep(.05)
             if (event.value == (-1,0)):
                 print('left dpad')
+                drone.send_rc_control(-speed, 0, 0, 0)
+                sleep(.05)
             if (event.value == (0,1)):
                 print('up dpad')
+                drone.send_rc_control(0, speed, 0, 0)
+                sleep(.05)
             if (event.value == (0,-1)):
                 print('down dpad')
+                drone.send_rc_control(0, -speed, 0, 0)
+                sleep(.05)
+        if event.type == JOYBALLMOTION:
+            print(event)
+        if event.type == JOYDEVICEADDED:
+            print(event)
             
         #exitx button on py display
         if event.type == QUIT:
-            pygame.quit() 
-
-
-
-#Xbox controller pygame
-#JOTBUTTON (DOWN/UP) event
-    #ABXY .button->
-        #a = 0
-        #b = 1
-        #y = 3
-        #x = 2
-
-    #Bumpers .button -> 
-        #left : 4
-        #right : 5
-
-#JOYAXISMOTION event
-
-    #Right joystick: .axis ->
-        #  up/down  2:(up:pos, down:neg)  
-        # left/right  3: (left:neg, right:pos)
-
-    #Left joystick: .axis -> 
-        #  up/down  0: .value(down:neg, up:pos)  
-        # left/right  1: .value(left:neg, right:pos)
-
-    #Triggers Left and Right .axis ->
-        #right trig (5): .value (1 =pulldown, -1 = letup)
-        #left trig  (4): .value (1 =pulldown, -1 = letup)
-
-#JOYHATMOTION event
-    # DPAD .value ->
-        # right:(1,0)
-        # left: (-1,0)
-        # up: (0,1)
-        # down: (0,-1)           
-         
-        
-
-        
-
-       
+            pygame.quit()
