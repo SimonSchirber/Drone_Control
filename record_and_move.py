@@ -1,15 +1,40 @@
-from djitellopy import Tello
-from time import sleep
+from djitellopy import tello
 import cv2
+from time import sleep
 import pygame
 from pygame.locals import *
 
-
-##see all commands at https://github.com/damiafuentes/DJITelloPy/blob/master/djitellopy/tello.py
-
 #create tello object, call it anything and initalize
-drone = Tello()
+drone = tello.Tello()
 drone.connect()
+drone.streamon()
+
+def findFace(img):
+    faceCascade = cv2.CascadeClassifier("Resources/face_rec.xml")
+    imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    faces = faceCascade.detectMultiScale(imgGray, 1.2, 8)
+    myFaceListC = []
+    myFaceListArea = []
+
+    for (x,y,w,h) in faces:
+        rect = cv2.rectangle(img,(x,y), (x+w, y+h), (36,255,12), 2)
+        cv2.putText(rect, 'Simon', (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 1)
+        
+        cx = x + w //2
+        cy = y + h //2
+        area = w *h
+        cv2.circle(img, (cx,cy), 5, (36,255,12), cv2.FILLED )
+        myFaceListC.append([cx, cy])
+        myFaceListArea.append(area)
+    #check if empty/no one in fram
+    if len(myFaceListArea) != 0:
+        i = myFaceListArea.index(max(myFaceListArea))
+        return img
+    else:
+        return img
+
+Recording = False
+
 
 
 # #get battery status
@@ -85,7 +110,13 @@ while keepflying:
                 print('left middle pressed')
 
             if (event.button == 7):
-                drone.streamon()
+                Recording = True
+                img = drone.get_frame_read().frame
+                #img = findFace(img)
+                img = cv2.resize(img,(360,240))
+                cv2.imshow("Image", img)
+                cv2.waitKey(1)    
+                sleep(.2)
                 print('right middle pressed')
         if event.type ==JOYBUTTONUP:
             print('button released')
@@ -194,3 +225,11 @@ while keepflying:
         #exitx button on py display
         if event.type == QUIT:
             pygame.quit()
+
+        # if Recording:
+        #     img = drone.get_frame_read().frame
+            
+        #     img = findFace(img)
+        #     img = cv2.resize(img,(360,240))
+        #     cv2.imshow("Image", img)
+        #     cv2.waitKey(1)    
