@@ -13,13 +13,13 @@ clock = pygame.time.Clock()
 pygame.joystick.init()
 joystick = [pygame.joystick.Joystick(i) for i in range(pygame.joystick.get_count())]
 
-#left bumper filtering
+#left joystic filtering
 axis_0 = [10,10,10]
 axis_1 = [10,10,10]
 avg_0 = 20
 avg_1 = 20
 
-#right bumper filtering
+#right joystick filtering
 axis_2 = [10,10,10]
 axis_3 = [10,10,10]
 avg_2 = 20
